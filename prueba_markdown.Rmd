@@ -1,0 +1,126 @@
+---
+title: "Metodología de la recolección y transformación de la información"
+author: "Pyxis Data Analytics"
+date: "11/7/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Metodología
+
+## *Transformación de la información financiera*
+### Superintendencia de Sociedades
+#### **Definición del universo y la muestra**
+#### Consideraciones generales
+Cuando se habla de calificar a las EQMAP contra su sector, se habla también de como definir un conjunto homogeneo de entidades cuyas caracteristicas permitan hacer comparaciones correctas y con sentido lógico. 
+
+La construcción de los sectores como  grupos de empresas que comparten actividades se expresa mejor al utilizar la Clasificación Internacional Industrual Uniforme (CIIU) versión 4 y A.C. (Adaptada a Colombia) la cual, además de ser el estandar de las Naciones Unidas y de las autoridades de vigilancia en el país para la clasificación de las actividades economicas, también en su definición de agrupar "según su producto o servicio final y/o las materias primas utilizadas" la caracteristica ideal para generar los clusteres de comparación.
+
+Recordando a la primera versión de las EQMAP, donde unicamente participaron empresas grandes(cita), y asumiendo basado en el público objetivo utilizado por Publicaciones Semana para promocionar la competencia, la guía de referencia para diseñar la muestra de empresas es el reporte anual de las 1.000 empresas más grandes del país publicado por la Superintendencia de Sociedades. Este documento recoje a las personas juridicas más representativas del mercado medidas por sus ingresos totales(cita).
+
+(ingresos totales = ingresos de actividades ordinarias + otros ingresos + Particiación en las ganancias de asociadas y negocios conjuntos)
+
+En la selección de los datos financieros procedentes de las entidades supervisadas  Las consideraciones, de acuerdo al ametodología de evaluación de las EQMAP, y aplicadas a todas las fuentes de información financiera son las siguientes:
+
+1. Estados financieros reportados con corte a 31 de diciembre de sus respectivos peridos(cita).
+2. Estados financieros individuales y/o separados.
+3. Empresas que reportaron valores durante los 4 perriodos (2015-2018) de forma consecutiva.
+4. Que figuren como "Activa" en la condición de vigilada por su respectiva superintendencia.
+5. Posee un codigo CIIU rev. 4 A.C. (Adaptada a Colombia)
+6. Sus estados financieros se ecuentran bajo formato NIIF.
+7. Los estados financieros se pueden consultar y verificar en los portales de información de las superintendencias.
+
+Los estados financieros recolectados fueron el Estado de la Situación Financiera (ESF) y el Estado de Resultados Integral (ERI). De acuerdo a los criterios especiicados por las EQMAP las cuentas recolectadas son las siguientes:
+
+* 100000 - Activo total
+* 300000 - Patrimonio total
+* 410000 - Ingresos de actividades ordinarias (operacionales)
+* 610000 - Costos por la prestación de bienes y/o servicios (costos de ventas)
+* 510000 - Gastos de administración 
+* 520000 - Gastos de ventas
+* 540000 - ingreso (gasto) de impuesto de renta
+
+Las cuentas 41, 61, 51 y 52 se emplearon para el cálculo de la Utilidad Operacional de la siguiente forma: 
+
+Ingresos Operacionales - Costos de Ventas - (Gastos Operacionales de Admisnitración y Ventas)
+
+Este metodo de obtención respeta la formula estandar definida por las NIIF y permite obtener un resultado homogéneo para todas las empresas independiente de su sector o fuente de vigilancia, debido a que en algunas oportunidades, las compañias en sus reportes decien o bien admitir u omitir las amortizaciones y los ingresos no operacionales. 
+
+Los anteriores parametros de selección varian de acuerdo a la superintendencia de procedencia, dichas variaciones se explican en la sección de consideraciones particulares por entidad supervisora.
+
+Adicional a las fuentes primarias (superintendencias) se tomaron en cuenta dos bases de datos secundarias como apoyo a la recolección inicial. La primera es EMIS, el portal de información empresarial que permite corroborar los valores de algunas empresas cuyos datos no podian ser verificados de forma natural mediante las superintendencias. Lo anterior se debe a dificultades en las plataformas de busqueda que las entidades gubernamentales reportaron. Se aclara que las fuentes primarias de EMIS son las propias entidades supervisoras. 
+
+En segundo lugar, el Directorio Estadistico de Empresas del DANE. Esta base de datos reune a todas las sociedades de las que el DANE recolecta información estadistica y provee ademas de información sensible de la empresa, el codigo CIIU rev. 4 A.C.
+
+
+#### Consideraciones generales por supervisora
+#### Registro Nacional de Acciones y Valores (RNVE)
+##### Universo
+De acuerdo al reporte de la Superintendencia de Sociedades, de las 1000 empresas más grandes del país(cita), 39 entidades estan bajo supervisión de la Superintendencia Financiera mediante el RNVE. Estas entidades pertenecen al sector real y componen aproximadamente el 20% de los ingresos totales de las empresas más grandes. 
+
+Debido a la importancia de estas empresas la inclusión de sus estados financieros no podia ser omitida. Para garantizar la solidez de la información, adicional a las condiciones generales, se tomaron los estados financieros que cada una de las entidades reportó a la superintendencia siguiendo los siguientes criterios:
+
+* Que las entidades mantengan el estado de vigilancia "Activo" al año 2018. 
+* Que los estados financieros se encontraran procesados con éxito por parte de la Superfinanciera.
+* Que los documentos estuvieran legibles y actualizados.
+
+Teniendo en consideracion los anteriores parametros, 37(cita) empresas forman
+la muestra procedente del RNVE. 
+
+Algunas empresas no reportaron "Gastos de Ventas" de forma separada a los "Gastos de Admisnitración"
+
+#### Transformación
+
+Una vez recolectados los estados financieros se utilizo una herramienta de OCR (Optical Character Recognition) debido a que los documentos se encontraban en formato .pdf y algunos de ellos contenian imagenes escaneadas de los reportes. 
+Posterior al uso del OCR, se verifico de forma manual a cada una de las entidades que sus valores fueran los correctos reportados a la superintendencia.
+
+Terminada la extracción de los datos, solo se tomaron en cuenta aquellas cuentas NIIF utilizadas en la evaluación del EQMAP. 
+
+#### Superintendencia del Subsidio Familiar
+
+Respecto a las Cajas de Compensación Familiar (CCF), se obtuvieron los estados financieros de 43 entidades. Se utilizo el mismo procedimiento de las anteriores superindencias, sin embargo, se hace detalle en las siguientes consideraciones:
+
+1. La estructura contable de las CCF no reporta la cuenta "Gastos de Ventas", por lo que su uso fue omitido para el cálculo de la utilidad operacional. En su lugar la totalidad de la cuenta 510000 - Gastos de Administración Operacionales" se utilizo respetando la estructura NIIF en los reportes publicados por la superintendencia.
+2. No se utilizan los costos de la cuenta 530000 - Otros gastos - debido a que según si definición no son operacionales.  
+3. Al menos la mitad de las CCF no reporta la cuenta "Impuesto de Renta" debido a que se encuentran en regimenes especiales(cita), por lo que no se utilizo esta cuenta en la condición de reportar de forma continua durante los periodos entre 2015 y 2018.
+
+#### Superintendencia de Sociedades
+Es importante aclarar que aunque una empresa mantenga sus estados financieros con corte a 31 de diciembre, los cortes estatutarios, definidos por la superintendencia como los periodos del año donde se deben presentar estados financieros, pueden variar de empresa a empresa. En este caso, si la empresa reporto estados anuales, se tomaron tal cual. Si la empresa reporto estados semestrales, se tomaron ambos semestres, etc.
+
+#### Superintendencia Financiera
+En total se determinaron 51 empresas pertenecientes a los establecimientos de crédito. De estas 47 cumplen con las condiciones generales de selección para el EQMAP. En el proceso de transformación de los datos es necesario aclarar los siguientes puntos:
+
+1. Las cooperativas financieras no reportan impuesto de renta ya que pertenecen al régimen espcial de impuestos. 
+2. El formato contable NIIF de los establecimientos financieros es sustancialmente diferente a las NIIF del sector real. Los cambios más notables son la ausencia de los costos de ventas y gastos de ventas. En su lugar y respetando a la estructura de los reportes financieros se utilizo la cuenta 510000 - Gastos Operacionales - como insumo para el cálculo de la utilidad operacional. 
+3. Los ingresos operacionales de los establcimientos financieros tienen en cuenta la totalidad de la cuenta 410000 - Ingresos de Operaciones Ordinarias Generales - ya que de esta forma son contemplados por la SUperfinanciera. 
+
+
+
+#### Composicion de la muestra
+Supersociedades - 12.513
+Supersolidaria - 4.440
+Supersubsidios - 43
+Superfinanciera - 
+Superfinanciera (RNVE) - 38
+Superservicios - 
+
+
+
+
+
+
+Del universo inicial de 31.951 empresas, 12.513 entidades cumplieron las condiciones anteriores y conforman la muestra inicial para la comparación con las empresas participantes. 
+
+#### **Caracteristicas de la muestra**
+En total se indentificaron 451 sectores al nivel clase CIIU. Su distribución se muestra de la siguiente manera
+
+
+
+```{r some, echo=FALSE, message=FALSE, warning=FALSE}
+
+

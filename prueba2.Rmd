@@ -1,0 +1,55 @@
+---
+title: "Untitled"
+author: "Diego A. Peralta"
+date: "7/23/2019"
+output: html_document
+---
+
+# 2012 General Social Survey analysis
+
+
+
+This report contains a basic exploratory analysis of the 2012 General Social Survey data from the `tigerstats` package.
+
+
+
+```{r include=FALSE}
+
+library(tigerstats)
+
+```
+
+
+
+Survey response count by gender is
+
+
+
+```{r echo=FALSE, comment=NA}
+
+table(gss2012$sex)
+
+
+
+```
+
+
+
+Let's see how political persuasion correlates with views on capital punishment.
+
+
+
+
+
+```{r echo=FALSE, comment=NA}
+
+prop.table(table(gss2012$polviews, gss2012$cappun))
+
+
+
+```
+
+
+
+The table suggests that, as a person's political stances becomes more conservative that person tends to be more likely to favour capital punishment. No news there. What might be more surprising that people have to hold quite strong liberal views before they have a tendency to oppose capital punishment.
+

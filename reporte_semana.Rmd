@@ -1,0 +1,186 @@
+---
+title: "Reporte estadístico EQMAP"
+author: "Pyxis Data Analytics"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r codigo, message=FALSE, echo=FALSE, include=FALSE}
+# Librerias
+# Conexion a google drive
+library(googledrive)
+library(googlesheets)
+library(readr)
+# Procesamiento de los datos
+library(lubridate)
+library(dplyr)
+library(stringr)
+library(stringi)
+library(purrr)
+library(forcats)
+# Graficacion
+library(ggplot2)
+library(DT)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+
+# Conectarse a la hoja de calculo de google
+hoja_calculo <- gs_key("1iKJj0l3Gix8Zcmg6-2M0CYS4m_ZEJclbxd4F38QU7cg")
+
+# Importar los datos de la hoja de calculo de registros
+registros <- hoja_calculo %>%
+  gs_read(ws = "registros")
+
+# Procesamiento de los registros
+reporte <- registros %>%
+  filter(!Tipo %in% c(0, 4)) %>%
+  mutate(id = 1:nrow(.)) %>%
+  select(id, everything()) %>%
+  mutate_at(vars(Empresa, Nombre1, Apellido1, Nombre2, Apellido2,
+                 Replegal, Cargo), 
+            stri_trans_general, "Latin-ASCII") %>%
+  mutate_at(vars(Nombre1, Apellido1, Nombre2, Apellido2, Cargo), 
+            str_to_title) %>%
+  mutate(Tipo = case_when(Tipo == 1 ~ "Aprobado",
+                          Tipo == 2 ~ "Revisión",
+                          Tipo == 3 ~ "Cancelado"),
+         Fecha = word(Fecha, 1),
+         Fecha = ymd(Fecha),
+         Empresa = str_to_upper(Empresa),
+         Carta = ifelse(!is.na(Carta),
+                        "Si",
+                        NA),
+         Carta = ifelse(Replegal == "No" & is.na(Carta),
+                        "No",
+                        Carta),
+         Correo = str_to_lower(Correo))
+
+# Reporte publico
+reporte_publico <- reporte %>%
+  select(-ID, -CIIU, -Formulario) %>%
+  rename(ID = id) %>%
+  mutate(Nombre = ifelse(Replegal == "Si",
+                         Nombre1,
+                         Nombre2),
+         Apellido = ifelse(Replegal == "Si",
+                           Apellido1,
+                           Apellido2)) %>%
+  select(-Nombre1, -Nombre2, -Apellido1, -Apellido2, -Cargo, -Carta) %>%
+  select(ID, Tipo, Fecha, Empresa, NIT, Municipio, Departamento,
+         Replegal, Nombre, Apellido, Telefono, Correo)
+```
+
+#### **Total de registros acumulados**
+
+Este es el total de registros acumulados que se tienen desde el 16 de julio de 2019 cuando se obtuvieron los primeros registros de las empresas participantes.
+
+```{r total, message=FALSE, echo=FALSE}
+total <- reporte_publico %>%
+  summarise(`Total de registros` = n())
+
+total %>%
+  kable(align = "c") %>%
+  kable_styling(full_width = FALSE,
+                font_size = 16)
+```
+
+#### **Registros según su estado**
+
+Los estados se clasifican en los siguientes grupos:
+
+1. **Aprobado**: Registro sin inconvenientes.
+2. **Revisión**: Uno o más campos del registro presentan inconsistencias.
+3. **Cancelado**: Luego de evaluar el registro se decidio que no puede participar.
+
+```{r estado, message=FALSE, echo=FALSE}
+estado <- reporte_publico %>%
+  group_by(Tipo) %>%
+  summarise(`Total de registros` = n())
+
+estado %>%
+  kable(align = "c") %>%
+  kable_styling(full_width = FALSE,
+                font_size = 16)
+```
+
+#### **Registros por ubicación geográfica**
+
+
+```{r ubicacion, message=FALSE, echo=FALSE}
+depto <- reporte_publico %>%
+  group_by(Departamento) %>%
+  summarise(`Total de registros` = n()) %>%
+  mutate(Departamento = fct_reorder(Departamento, `Total de registros`))
+
+ciudad <- reporte_publico %>%
+  group_by(Municipio) %>%
+  summarise(`Total de registros` = n()) %>%
+  mutate(Municipio = fct_reorder(Municipio, `Total de registros`))
+```
+
+```{r depto, echo=FALSE, fig.align='center', dpi = 75}
+depto %>%
+  ggplot(aes(as.factor(Departamento), `Total de registros`)) +
+  geom_col() +
+  theme_minimal() +
+  geom_text(aes(label = `Total de registros`,
+                hjust = -0.5)) +
+  theme(text = element_text(size = 16, angle = 0),
+        axis.title = element_blank()) +
+  coord_flip()
+```
+
+```{r ciudad, echo=FALSE, fig.align='center', dpi = 75}
+ciudad %>%
+  ggplot(aes(as.factor(Municipio), `Total de registros`)) +
+  geom_col() +
+  theme_minimal() +
+  geom_text(aes(label = `Total de registros`,
+                hjust = -0.5)) +
+  theme(text = element_text(size = 16, angle = 0),
+        axis.title = element_blank()) +
+  coord_flip()
+```
+
+#### **Registros por día**
+
+Este es el número de empresas que se registrarón en la fecha especificada. El registro se cuenta desde las 00:00 hasta las 23:59 del día señalado. La última fecha corresponde al día más reciente donde se obtuvo una inscripción por parte de una empresa.
+
+```{r tabla, message=FALSE, echo=FALSE}
+
+diario <- reporte_publico%>%
+  group_by(Fecha) %>%
+  summarise(`Número de registros` = n())
+```
+
+```{r grafico, echo=FALSE, fig.align='center', dpi = 75}
+diario %>%
+  ggplot(aes(as.factor(Fecha), `Número de registros`)) +
+  geom_col() +
+  theme_minimal() +
+  geom_text(aes(label = `Número de registros`,
+                vjust = -0.5)) +
+  theme(text = element_text(size = 16, angle = 90),
+        axis.title = element_blank())
+```
+
+#### **Lista de registros**
+
+La lista esta en orden ascendente por fecha, siendo el último registro el más reciente.
+
+```{r registros, echo=FALSE}
+
+lista <- reporte_publico
+
+lista %>%
+  datatable(options = list(pageLength = 200))
+```
+
+
